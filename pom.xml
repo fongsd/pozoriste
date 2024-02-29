@@ -1,0 +1,5 @@
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-j-8.3.0</artifactId>
+    <version>8.3.0</version>
+</dependency>
