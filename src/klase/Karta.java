@@ -1,3 +1,7 @@
+package klase;
+
+import klase.Izvodjenje;
+
 import java.util.Date;
 
 public class Karta {

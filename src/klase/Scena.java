@@ -1,3 +1,5 @@
+package klase;
+
 import java.util.ArrayList;
 
 public class Scena {
@@ -60,7 +62,7 @@ public class Scena {
 
     @Override
     public String toString() {
-        return "Scena{" +
+        return "klase.Scena{" +
                 "id=" + id +
                 ", naziv='" + naziv + '\'' +
                 ", tonskiZapis='" + tonskiZapis + '\'' +

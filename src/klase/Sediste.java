@@ -1,3 +1,5 @@
+package klase;
+
 public class Sediste {
 
     int red;
@@ -27,7 +29,7 @@ public class Sediste {
 
     @Override
     public String toString() {
-        return "Sediste{" +
+        return "klase.Sediste{" +
                 "red=" + red +
                 ", broj=" + broj +
                 '}';

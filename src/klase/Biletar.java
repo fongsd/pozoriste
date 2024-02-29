@@ -1,6 +1,8 @@
+package klase;
+
 import java.util.ArrayList;
 
-public class Biletar extends Korisnik{
+public class Biletar extends Korisnik {
 
     ArrayList<Karta> prodateKarte;
     public Biletar(String username, String lozinka, String ime, String prezime,

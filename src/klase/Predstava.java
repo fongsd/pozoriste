@@ -1,20 +1,30 @@
+package klase;
+
 public class Predstava {
 
     String naziv;
     String reziser;
     String glumci;
     int trajanje;
+
+    TipPredstave tip;
     String produkcija;
     String opis;
-
-    public Predstava(String naziv, String reziser, String glumci, int trajanje, String produkcija, String opis)
+    int godina;
+    public Predstava(String naziv, TipPredstave tip, String reziser, String glumci, int trajanje, String produkcija, int godina, String opis)
     {
+        this.godina = godina;
         this.naziv = naziv;
+        this.tip = tip;
         this.reziser = reziser;
         this.glumci = glumci;
         this.trajanje = trajanje;
         this.produkcija = produkcija;
         this.opis = opis;
+    }
+
+    public int getGodina() {
+        return godina;
     }
 
     public int getTrajanje() {
@@ -67,7 +77,7 @@ public class Predstava {
 
     @Override
     public String toString() {
-        return "Predstava{" +
+        return "klase.Predstava{" +
                 "naziv='" + naziv + '\'' +
                 ", reziser='" + reziser + '\'' +
                 ", glumci='" + glumci + '\'' +

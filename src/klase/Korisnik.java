@@ -1,3 +1,5 @@
+package klase;
+
 public abstract class Korisnik {
     String username;
     String lozinka;

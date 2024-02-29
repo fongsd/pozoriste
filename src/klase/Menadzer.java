@@ -1,6 +1,10 @@
+package klase;
+
+import klase.Korisnik;
+
 import java.util.ArrayList;
 
-public class Menadzer extends Korisnik{
+public class Menadzer extends Korisnik {
 
     ArrayList<Predstava> predstave;
     public Menadzer(String username, String lozinka, String ime, String prezime, ArrayList<Predstava> predstave) {
