@@ -4,7 +4,6 @@ import klase.*;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Scanner;
 
@@ -12,9 +11,11 @@ public class Options {
     int opcija;
     Connection con;
     Scanner sc = new Scanner(System.in);
-    public Options(int opcija, Connection con) throws SQLException {
+    String username;
+    public Options(int opcija, Connection con, String username) throws SQLException {
         this.opcija = opcija;
         this.con = con;
+        this.username = username;
         switch (this.opcija){
             case 1:
                 opcija1();
@@ -90,28 +91,129 @@ public class Options {
     }
 
     private void opcija3() throws SQLException {
-        ArrayList<Predstava> predstave = getAllPredstave();
-        predstave.forEach(p -> System.out.println(p.toString()));
-        System.out.println("Unesi novu predstavu: naziv*, tip*, reziser, glumci, trajanje, produkcija, godina, opis");
-        PreparedStatement pstm = this.con.prepareStatement("insert into predstava(naziv, tip, reziser, glumci, trajanje, produkcija, godina, opis) value(?, ?, ?, ?, ?, ?, ?, ?)");
-        pstm.setString(1, this.sc.nextLine());
-        pstm.setString(2,  this.sc.nextLine());
-        pstm.setString(3,  this.sc.nextLine());
-        pstm.setString(4,  this.sc.nextLine());
-        pstm.setString(5, String.valueOf( this.sc.nextLine()));
-        pstm.setString(6,  this.sc.nextLine());
-        pstm.setString(7, String.valueOf( this.sc.nextLine()));
-        pstm.setString(8,  this.sc.nextLine());
-        Boolean inserted = pstm.execute();
-        predstave = getAllPredstave();
-        predstave.forEach(p -> System.out.println(p.toString()));
+        if (isManager()) {
+            ArrayList<Predstava> predstave = getAllPredstave();
+            predstave.forEach(p -> System.out.println(p.toString()));
+            System.out.println("Unesi novu predstavu: naziv*, tip*, reziser, glumci, trajanje, produkcija, godina, opis");
+            PreparedStatement pstm = this.con.prepareStatement("insert into predstava(naziv, tip, reziser, glumci, trajanje, produkcija, godina, opis) value(?, ?, ?, ?, ?, ?, ?, ?)");
+            pstm.setString(1, this.sc.nextLine());
+            pstm.setString(2, this.sc.nextLine());
+            pstm.setString(3, this.sc.nextLine());
+            pstm.setString(4, this.sc.nextLine());
+            pstm.setString(5, String.valueOf(this.sc.nextLine()));
+            pstm.setString(6, this.sc.nextLine());
+            pstm.setString(7, String.valueOf(this.sc.nextLine()));
+            pstm.setString(8, this.sc.nextLine());
+            Boolean inserted = pstm.execute();
+            predstave = getAllPredstave();
+            predstave.forEach(p -> System.out.println(p.toString()));
+        }
+        else{
+            System.err.println("Prijavljen korisnik nije menadzer");
+        }
+    }
+    private boolean isManager() throws SQLException {
+        PreparedStatement pstm = this.con.prepareStatement("select * from menadzer where username = ?");
+        pstm.setString(1, this.username);
+        ResultSet rs = pstm.executeQuery(); // execute returns true if resultSet is not empty
+        return  rs.next() ;
+    }
+    private void opcija4() throws SQLException {
+        if (isManager()){
+            System.out.println("Unesi naziv predstave za promenu");
+            String nazivPredstave = this.sc.nextLine();
+            PreparedStatement pstm = this.con.prepareStatement("update predstava set reziser = ? where naziv = ?");
+            System.out.println("Unesi novog rezisera");
+            String noviReziser  =this.sc.nextLine();
+            pstm.setString(1, noviReziser);
+            pstm.setString(2, nazivPredstave);
+            int alterRows = pstm.executeUpdate();
+            System.out.printf("Izmenjeno je redova " + alterRows);
+        }else{
+            System.err.println("Prijavljen korisnik nije menadzer");
+        }
+    }
+
+    private void opcija5() throws SQLException {
+        System.out.println("Pretrazite izvodjenja predstave na osnovu:");
+        ispisiOpcijePretrage();
+        System.out.println("Izaberite opciju pretrage:");
+        String opcija = this.sc.nextLine();
+        izvrsiOpciju(opcija);
+
+    }
+    private void ispisiOpcijePretrage(){
+        System.err.println("a) nazivu predstave");
+        System.err.println("b) tipu predstave");
+        System.err.println("c) godini premijere predstave");
+        System.err.println("d) režiseru predstave");
+        System.err.println("e) glumcima koji učestvuju u predstavi");
+        System.err.println("f) nazivu, režiseru i glumcima predstave");
+        System.err.println("g) vremenu početka, pri čemu se unosi početno i krajnje vreme");
+        System.err.println("h) nazivu scene");
+    }
+
+    private void izvrsiOpciju(String opcija) throws SQLException {
+        switch (opcija){
+            case "a" : getByNaziv(); break;
+            case "b" : getByTip(); break;
+            case "c" : getByYear(); break;
+            case "d" : getByDirector(); break;
+            case "e" : getByActors(); break;
+            case "f" : getByYearAndDirector(); break;
+            case "g" : getByStartAndEndTime(); break;
+            case "h" : getByScene(); break;
+        }
+    }
+
+    private void getByYear() {
+    }
+
+    private void getByDirector() {
 
     }
 
-    private void opcija4() {
+    private void getByActors() {
+
     }
 
-    private void opcija5() {
+    private void getByYearAndDirector() {
+
+    }
+
+    private void getByStartAndEndTime() {
+    }
+
+    private void getByScene() {
+
+    }
+
+    private void getByTip() {
+
+    }
+
+    private ArrayList<Izvodjenje>  getByNaziv() throws SQLException {
+         ArrayList<Izvodjenje> izvodjenjes = new ArrayList<Izvodjenje>();
+
+         System.out.println("Unesi naziv predstave");
+         String naziv = this.sc.nextLine();
+         PreparedStatement pstm = this.con.prepareStatement("select * from izvodjenje where nazivPredstave = ?");
+         pstm.setString(1, naziv);
+         ResultSet rs = pstm.executeQuery();
+        while (rs.next()){
+            PreparedStatement pstmJoin = this.con.prepareStatement
+                    ("select * " +
+                            "from predstava p join izvodjenje i " +
+                            "on p.naziv = i.nazivPredstave " +
+                            "where p.naziv = ?");
+            pstmJoin.setString(1, naziv);
+             ResultSet rsJoin = pstmJoin.executeQuery();
+             while (rsJoin.next()){
+                 System.out.println(rs.getString(1) + rs.getString(5));
+             }
+
+         }
+         return izvodjenjes;
     }
 
     private void opcija6() {

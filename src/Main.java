@@ -31,12 +31,14 @@ public class Main {
             ResultSet rs = stmt.executeQuery();
             try{
                 rs.next();
-                System.out.println("Uspesno ste ulogovani: "  + rs.getString(1));
+                String username = rs.getString(1);
+                System.out.println("Uspesno ste ulogovani: "  + username);
                 while (true) {
 
                     ispisiOpcije();
                     int opcija = sc.nextInt();
-                    Options res = new Options(opcija, con);
+                    Options res = new Options(opcija, con, username);
+                    Thread.sleep(1000);
                 }
             }
             catch (SQLException s)
