@@ -15,23 +15,28 @@ public class Options {
     public Options(int opcija, Connection con) throws SQLException {
         this.opcija = opcija;
         this.con = con;
-
         switch (this.opcija){
-            case 1: opcija1();
-            case 2: opcija2();
-            case 3: opcija3();
-            case 4: opcija4();
-            case 5: opcija5();
-            case 6: opcija6();
-            case 7: opcija7();
-            case 8: opcija8();
-            case 9: opcija9();
-            case 10: opcija10();
-            case 11: opcija11();
-            case 12: opcija12();
-            case 13: opcija13();
-            case 14: opcija14();
-            case 15: opcija15();
+            case 1:
+                opcija1();
+                break;
+            case 2:
+                opcija2();
+                break;
+            case 3:
+                opcija3();
+                break;
+            case 4: opcija4(); break;
+            case 5: opcija5(); break;
+            case 6: opcija6(); break;
+            case 7: opcija7(); break;
+            case 8: opcija8(); break;
+            case 9: opcija9(); break;
+            case 10: opcija10(); break;
+            case 11: opcija11(); break;
+            case 12: opcija12(); break;
+            case 13: opcija13(); break;
+            case 14: opcija14(); break;
+            case 15: opcija15(); break;
         }
 
     }
@@ -40,8 +45,9 @@ public class Options {
         System.out.println("Unesi naziv predstave:");
         String naziv = this.sc.next();
         try {
-            Statement s = this.con.createStatement();
-            ResultSet rs = s.executeQuery("select * from predstava");
+            PreparedStatement ps = this.con.prepareStatement("select * from predstava where naziv = ?");
+            ps.setString(1, naziv);
+            ResultSet rs = ps.executeQuery();
             rs.next();
             Predstava p = new Predstava(rs.getString(1), getTipPredstave(rs.getString(2)), rs.getString(3), rs.getString(4),
                     rs.getInt(5), rs.getString(6), rs.getInt(7), rs.getString(8));

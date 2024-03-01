@@ -33,26 +33,8 @@ public class Main {
                 rs.next();
                 System.out.println("Uspesno ste ulogovani: "  + rs.getString(1));
                 while (true) {
-                    System.err.println("Unesite broj: ");
-                    System.err.println("1. Pronalazenje predstave po nazivu");
-                    System.err.println("2. Pretraga i prikaz predstava");
-                    System.err.println("3. Unos nove predstave");
-                    System.err.println("4. Izmena predstave");
-                    System.err.println("5. Pretraga i prikaz izvođenja");
-                    System.err.println("6. Unos izvođenja");
-                    System.err.println("7. Pronalaženje karte po serijskom broju");
-                    System.err.println("8. Prikaz svih karata");
-                    System.err.println("9. Prodaja karte");
-                    System.err.println("10. Pretraga i prikaz korisnika");
-                    System.err.println("11. Unos i izmena korisnika");
-                    System.err.println("12. Unos nove scene");
-                    System.err.println("13. Prikaz scena");
-                    System.err.println("14. Brisanje korisnika, predstave, scene i izvođenja");
-                    System.err.println("15. Odjavljivanje korisnika");
-//                    Statement s = con.createStatement();
-//                    ResultSet resultSet = s.executeQuery("select * from predstava");
-//                    resultSet.next();
-//                    System.out.println("Predstava "  + resultSet.getString(1));
+
+                    ispisiOpcije();
                     int opcija = sc.nextInt();
                     Options res = new Options(opcija, con);
                 }
@@ -64,5 +46,23 @@ public class Main {
             }
 
         }catch(Exception e){ System.out.println(e);}
+    }
+    public static void ispisiOpcije(){
+        System.err.println("Unesite broj: ");
+        System.err.println("1. Pronalazenje predstave po nazivu");
+        System.err.println("2. Pretraga i prikaz predstava");
+        System.err.println("3. Unos nove predstave");
+        System.err.println("4. Izmena predstave");
+        System.err.println("5. Pretraga i prikaz izvođenja");
+        System.err.println("6. Unos izvođenja");
+        System.err.println("7. Pronalaženje karte po serijskom broju");
+        System.err.println("8. Prikaz svih karata");
+        System.err.println("9. Prodaja karte");
+        System.err.println("10. Pretraga i prikaz korisnika");
+        System.err.println("11. Unos i izmena korisnika");
+        System.err.println("12. Unos nove scene");
+        System.err.println("13. Prikaz scena");
+        System.err.println("14. Brisanje korisnika, predstave, scene i izvođenja");
+        System.err.println("15. Odjavljivanje korisnika");
     }
 }
