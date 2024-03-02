@@ -22,6 +22,7 @@ bin/
 /nbdist/
 /.nb-gradle/
 
+/console.sql
 ### VS Code ###
 .vscode/
 

@@ -356,13 +356,86 @@ public class Options {
     private void opcija10() {
     }
 
-    private void opcija11() {
+    private void opcija11() throws SQLException {
+        if (isManager()) {
+            System.out.println("Unos i izmena korisnika: 1 ili 2");
+            int opcija = Integer.parseInt(this.sc.nextLine());
+            if (opcija == 1) {
+                System.out.println("Unesi novog korisnika: username, password, ime, prezime");
+                PreparedStatement pstm = this.con.prepareStatement(
+                        "insert into korisnik value (?, ?, ?, ?);"
+                );
+                String username = this.sc.nextLine();
+                String password = this.sc.nextLine();
+                String ime = this.sc.nextLine();
+                String prezime = this.sc.nextLine();
+                pstm.setString(1, username);
+                pstm.setString(2, password);
+                pstm.setString(3, ime);
+                pstm.setString(4, prezime);
+                if (pstm.execute()) {
+                    System.out.println("Unet novi korisnik");
+                    pstm = this.con.prepareStatement("select * from korsnik where username = ?");
+                    pstm.setString(1, username);
+                    ResultSet rs = pstm.executeQuery();
+                    System.out.println(rs.getString(1) + " " + rs.getString(2)
+                            + " " + rs.getString(3) + " " + rs.getString(4));
+                }
+            } else {
+                System.out.println("Unesi username i password za izmenu");
+                String username = this.sc.nextLine();
+                String password = this.sc.nextLine();
+                PreparedStatement pstm = this.con.prepareStatement("update korisnik " +
+                        "set lozinka = ? " +
+                        "where username = ?");
+                pstm.setString(2, username);
+                pstm.setString(1, password);
+                pstm.executeUpdate();
+                    pstm = this.con.prepareStatement("select * from korisnik where username = ?");
+                    pstm.setString(1, username);
+                    ResultSet rs = pstm.executeQuery();
+                    rs.next();
+                    System.out.println(rs.getString(1) + " " + rs.getString(2)
+                            + " " + rs.getString(3) + " " + rs.getString(4));
+            }
+        }
     }
 
-    private void opcija12() {
+    private void opcija12() throws SQLException {
+        if (isManager())
+        {
+            System.out.println("Ucitaj naziv scene i ton");
+            String scena = this.sc.nextLine();
+            String ton = this.sc.nextLine();
+            PreparedStatement pstmScena = this.con.prepareStatement("insert into scena(naziv, ton) value (?, ?)");
+            pstmScena.setString(1, scena);
+            pstmScena.setString(2, ton);
+            pstmScena.execute();
+            System.out.println("Ucitaj broj redova i broj sedista po redu za scenu");
+            int brojRedova = this.sc.nextInt();
+            int brojKolona = this.sc.nextInt();
+            for (int i = 1 ; i <= brojRedova; i++)
+            {
+                for (int j = 1; j <= brojKolona; j++){
+                    PreparedStatement pstm = this.con.prepareStatement("insert into sediste " +
+                            "value (?, ?, ?)");
+                    pstm.setInt(1, i);
+                    pstm.setInt(2, j);
+                    pstm.setString(3, scena);
+                    pstm.execute();
+                }
+            }
+        }
     }
-
-    private void opcija13() {
+    int comapreByNazivScene(Scena s1, Scena s2){
+        if (s1.getNaziv().compareTo(s2.getNaziv()) > 0){
+            return 1;
+        }else return -1;
+    }
+    private void opcija13() throws SQLException {
+        ArrayList<Scena> scene = getAllScena();
+        scene.sort(this::comapreByNazivScene);
+        scene.forEach(p -> System.out.println(p.toString()));
     }
 
 
