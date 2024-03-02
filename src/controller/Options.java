@@ -1,11 +1,10 @@
 package controller;
 
 import klase.*;
-
+import java.util.random.*;
+import javax.swing.plaf.nimbus.State;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Scanner;
+import java.util.*;
 
 public class Options {
     int opcija;
@@ -298,8 +297,57 @@ public class Options {
         }
 
     }
+    private int compareByVremeIzdavanja(kartaPredstavaOption8 k1, kartaPredstavaOption8 k2){
+        if (k1.getVremeIzadvanja().equals(k2.getVremeIzadvanja()))
+            return 0;
+        if (k1.getVremeIzadvanja().compareTo(k2.getVremeIzadvanja()) > 0){
+            return  1;
+        }
+        else return -1;
+    }
+    private int compareByPopust(kartaPredstavaOption8 k1, kartaPredstavaOption8 k2){
+        if (k1.getPopust() > k2.getPopust()){
+            return 1;
+        }
+        else return -1;
+    }
+    private int compareByNazivVremeIzvodjenjaIIzdavanja(kartaPredstavaOption8 k1, kartaPredstavaOption8 k2){
+        if (k1.getNazivPredstave().compareTo(k2.getNazivPredstave()) > 0){
+            return 1;
+        }
+        if (k1.getNazivPredstave().compareTo(k2.getNazivPredstave()) < 0){
+            return -1;
+        }
+        else {
+            if (k1.getVremePocetka().compareTo(k2.getVremePocetka()) > 0){
+                return 1;
+            }
+            if (k1.getVremePocetka().compareTo(k2.getVremePocetka()) < 0){
+                return -1;
+            }
+            else if (k1.getVremeIzadvanja().compareTo(k2.getVremeIzadvanja()) > 0){
+                return 1;
+            }
+            else if (k1.getVremeIzadvanja().compareTo(k2.getVremeIzadvanja()) < 0){
+                return -1;
 
-    private void opcija8() {
+            }
+        }
+     return  0;
+    }
+
+    private void opcija8() throws SQLException {
+        double prob = new Random().nextDouble();
+        ArrayList<kartaPredstavaOption8> karte = getAllKarte();
+        if (prob < 0.3){
+            karte.sort(this::compareByVremeIzdavanja);
+        }else if (prob >= 0.3 && prob < 0.6){
+            karte.sort(this::compareByPopust);
+        }
+        else{
+            karte.sort(this::compareByNazivVremeIzvodjenjaIIzdavanja);
+        }
+        karte.forEach(p -> System.out.println(p.toString()));
     }
 
     private void opcija9() {
@@ -326,7 +374,64 @@ public class Options {
     private void opcija15() {
 
     }
+    private ArrayList<kartaPredstavaOption8> getAllKarte() throws SQLException {
 
+        Statement s = this.con.createStatement();
+        ResultSet rs = s.executeQuery("select nazivPredstave, vremePocetka, scenaId, cena, popust, vremeIzdavanja, serialId\n" +
+                "from karte k join ftn.izvodjenje i on i.id = k.izvodjenje");
+        ArrayList<kartaPredstavaOption8> karte = new ArrayList<>();
+        while (rs.next())
+        {
+            kartaPredstavaOption8 k = new kartaPredstavaOption8(rs.getString(1), rs.getString(2), rs.getString(3),
+                    rs.getInt(4), rs.getInt(5), rs.getString(6), rs.getInt(7));
+            karte.add(k);
+        }
+        return  karte;
+    }
+    private class kartaPredstavaOption8{
+
+        String nazivPredstave, vremePocetka, scenaId, vremeIzadvanja;
+        int cena, popust, serialIdCard;
+        public kartaPredstavaOption8(String nazviPredstave, String vremePocetka, String scenaID, int cena, int popust
+                , String vremeIzdavanja, int serialIdCard) {
+            this.nazivPredstave = nazviPredstave;
+            this.vremeIzadvanja = vremeIzdavanja;
+            this.vremePocetka = vremePocetka;
+            this.scenaId = scenaID;
+            this.cena = cena;
+            this.popust = popust;
+            this.serialIdCard = serialIdCard;
+        }
+
+        public String getVremeIzadvanja() {
+            return vremeIzadvanja;
+        }
+
+        public String getVremePocetka() {
+            return vremePocetka;
+        }
+
+        public String getNazivPredstave() {
+            return nazivPredstave;
+        }
+
+        public int getPopust() {
+            return popust;
+        }
+
+        @Override
+        public String toString() {
+            return "kartaPredstavaOption8{" +
+                    "nazivPredstave='" + nazivPredstave + '\'' +
+                    ", vremePocetka='" + vremePocetka + '\'' +
+                    ", scenaId='" + scenaId + '\'' +
+                    ", vremeIzadvanja='" + vremeIzadvanja + '\'' +
+                    ", cena=" + cena +
+                    ", popust=" + popust +
+                    ", serialIdCard=" + serialIdCard +
+                    '}';
+        }
+    }
 
 //    public void getResult
 
