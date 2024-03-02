@@ -12,7 +12,7 @@ public class Options {
     Connection con;
     Scanner sc = new Scanner(System.in);
     String username;
-    public Options(int opcija, Connection con, String username) throws SQLException {
+    public Options(int opcija, Connection con, String username) throws SQLException, InterruptedException {
         this.opcija = opcija;
         this.con = con;
         this.username = username;
@@ -88,6 +88,18 @@ public class Options {
             predstave.add(tmp);
         }
         return predstave;
+    }
+
+    private ArrayList<Scena> getAllScena() throws SQLException {
+        ArrayList<Scena> scene = new ArrayList<>();
+        Statement s = this.con.createStatement();
+        ResultSet rs = s.executeQuery("select * from scena");
+        while (rs.next())
+        {
+            Scena scena = new Scena(rs.getInt(1), rs.getString(2), rs.getString(3));
+            scene.add(scena);
+        }
+        return scene;
     }
 
     private void opcija3() throws SQLException {
@@ -182,6 +194,7 @@ public class Options {
     }
 
     private void getByStartAndEndTime() {
+
     }
 
     private void getByScene() {
@@ -216,10 +229,74 @@ public class Options {
          return izvodjenjes;
     }
 
-    private void opcija6() {
+    private void opcija6() throws SQLException, InterruptedException {
+        if (isManager()){
+            System.out.println("Sve predstave ");
+            System.out.println(getAllPredstave());
+            Thread.sleep(500);
+            System.out.println("Sve scene");
+            System.out.println(getAllScena());
+            Thread.sleep(500);
+            System.out.println("Unesi naziv predstave, vreme izvodjenja, naziv scene  i cenu izvodjenja za unosenje novog izvodjenja");
+            String nazivPredstave = this.sc.nextLine();
+            String vremeIzvodjenja = this.sc.nextLine();
+            String nazivScene = this.sc.nextLine();
+            String cenaIzvodjenja = this.sc.nextLine();
+            PreparedStatement pstm = this.con.prepareStatement("select  * from predstava where naziv = ?");
+            pstm.setString(1, nazivPredstave);
+            ResultSet rs = pstm.executeQuery();
+            if (rs.next() == false)
+            {
+                System.out.println("Predstava ne postoji");
+            }
+            else{
+                pstm = this.con.prepareStatement("select * from scena where naziv = ?");
+                pstm.setString(1, nazivScene);
+                rs = pstm.executeQuery();
+                if (rs.next() == false) {
+                    System.out.println("Scena ne postoji");
+                }
+                pstm = this.con.prepareStatement("insert into" +
+                        " izvodjenje (nazivPredstave, vremePocetka, scenaId, cenaKarte) " +
+                        "value (?, ? , ?, ?)");
+                pstm.setString(1, nazivPredstave);
+                pstm.setString(2, vremeIzvodjenja);
+                pstm.setString(3, nazivScene);
+                pstm.setString(4, cenaIzvodjenja);
+                if (pstm.execute()){
+                    System.out.println("Uspesno uneto izvodjenje");
+                };
+            }
+
+
+
+        }
+        else {
+            System.out.println("Prijavljeni korisnik nije menadzer");
+        }
     }
 
-    private void opcija7() {
+    private void opcija7() throws SQLException {
+        System.out.println("Pronalazenje karte na osnovu serijskog broja: Unesi serijski broj");
+        int broj = this.sc.nextInt();
+        PreparedStatement pstm = this.con.prepareStatement("select i.nazivPredstave, i.vremePocetka, scenaId, k.cena,\n" +
+                "       case when k.popust = 0 then 'nema popusta' else k.popust end as popust, k.vremeIzdavanja, serialId\n" +
+                "from karte k join izvodjenje i on k.izvodjenje = i.id " +
+                "where k.serialId = ?");
+        pstm.setInt(1, broj);
+        ResultSet rs = pstm.executeQuery();
+        if (rs.next() == false){
+            System.out.println("nema podataka o serijskom broju karte");
+        }
+        else {
+            do{
+                System.out.println("Predstava " + rs.getString(1) + ", vreme pocetka: " + rs.getString(2) +
+                        ", na sceni: " + rs.getString(3) + ", sa cenom karte: " +
+                        rs.getInt(4) + ", popustom od:  " + rs.getString(5) + ", izdata karta u: " +
+                        rs.getString(6) + ", id karte: " + rs.getInt(7));
+            }while(rs.next());
+        }
+
     }
 
     private void opcija8() {
