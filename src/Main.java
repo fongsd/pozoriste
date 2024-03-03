@@ -22,33 +22,38 @@ public class Main {
 
             System.out.println("Molimo, prijavite se na sistem: ");
             Scanner sc = new Scanner(System.in);
-            String ime = sc.next();
-            String prezime = sc.next();
-
-            PreparedStatement stmt = con.prepareStatement("select * from korisnik where ime=? and prezime=?");
-            stmt.setString(1, ime);
-            stmt.setString(2, prezime);
+            String username = sc.nextLine();
+            String sifra = sc.nextLine();
+            System.out.println(username+ " " +sifra);
+            PreparedStatement stmt = con.prepareStatement("select * from korisnik where username=? and lozinka=?");
+            stmt.setString(1, username);
+            stmt.setString(2, sifra);
             ResultSet rs = stmt.executeQuery();
             try{
+
                 rs.next();
-                String username = rs.getString(1);
+                username = rs.getString(1);
                 System.out.println("Uspesno ste ulogovani: "  + username);
                 optionSelect(sc, con, username);
             }
             catch (SQLException s)
             {
-                System.out.println("korisnik ne postoji");
+                System.out.println("Desio se error");
                 s.printStackTrace();
             }
 
         }catch(Exception e){ System.out.println(e);}
     }
     public static void optionSelect(Scanner sc, Connection con, String username) throws SQLException, InterruptedException {
-        while (true) {
 
+        Options res = new Options(con, username);
+
+        while (true) {
             ispisiOpcije();
             int opcija = sc.nextInt();
-            Options res = new Options(opcija, con, username);
+            res.setOpcija(opcija);
+            res.promenaOpcije();
+            System.out.println("U mainu, username je: " + res.getUsername());
             Thread.sleep(1000);
         }
     }

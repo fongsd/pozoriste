@@ -7,12 +7,11 @@ import java.sql.*;
 import java.util.*;
 
 public class Options {
-    int opcija;
+    public int opcija;
     Connection con;
     Scanner sc = new Scanner(System.in);
-    String username;
-    public Options(int opcija, Connection con, String username) throws SQLException, InterruptedException {
-        this.opcija = opcija;
+    public String username;
+    public Options(Connection con, String username) throws SQLException, InterruptedException {
         this.con = con;
         this.username = username;
         switch (this.opcija){
@@ -39,6 +38,31 @@ public class Options {
             case 15: opcija15(); break;
         }
 
+    }
+    public void promenaOpcije() throws SQLException, InterruptedException {
+        switch (this.opcija){
+            case 1:
+                opcija1();
+                break;
+            case 2:
+                opcija2();
+                break;
+            case 3:
+                opcija3();
+                break;
+            case 4: opcija4(); break;
+            case 5: opcija5(); break;
+            case 6: opcija6(); break;
+            case 7: opcija7(); break;
+            case 8: opcija8(); break;
+            case 9: opcija9(); break;
+            case 10: opcija10(); break;
+            case 11: opcija11(); break;
+            case 12: opcija12(); break;
+            case 13: opcija13(); break;
+            case 14: opcija14(); break;
+            case 15: opcija15(); break;
+        }
     }
     public void opcija1() {
 //        Scanner sc = new Scanner(System.in);
@@ -127,12 +151,23 @@ public class Options {
         PreparedStatement pstm = this.con.prepareStatement("select * from menadzer where username = ?");
         pstm.setString(1, this.username);
         ResultSet rs = pstm.executeQuery(); // execute returns true if resultSet is not empty
-        return  rs.next() ;
+        if (rs.next()){
+            return true;
+        }else {
+            System.out.println("Korisnik " + this.getUsername() + " nije menadzer");
+            return false;
+        }
     }
 
     private boolean isBiletar() throws SQLException {
-        Statement s = this.con.createStatement();
-        ResultSet rs = s.executeQuery("select b.username from biletar b where b.username not in (select m.username from korisnik k join menadzer m on k.username = m.username)");
+        PreparedStatement s = this.con.prepareStatement("select b.username from biletar b" +
+                " where b.username not in " +
+                "(select m.username from korisnik k join menadzer m " +
+                "on k.username = m.username) " +
+                "and b.username = ?");
+        System.out.println("Postavlja se string za username " + this.username);
+        s.setString(1, this.username);
+        ResultSet rs = s.executeQuery();
         if (!rs.next()) return false;
         else {
             System.out.println(rs.getString(1));
@@ -362,9 +397,9 @@ public class Options {
 
     private void opcija9() throws SQLException {
         if (isBiletar()){
-
+            System.out.println("Biletar " + this.username);
         }else{
-            System.out.println("Prijaveljeni korisnik nije biletar");
+            System.out.println("Prijaveljeni korisnik nije biletar " + this.username);
         }
     }
 
@@ -433,7 +468,7 @@ public class Options {
             for (int i = 1 ; i <= brojRedova; i++)
             {
                 for (int j = 1; j <= brojKolona; j++){
-                    PreparedStatement pstm = this.con.prepareStatement("insert into sediste " +
+                    PreparedStatement pstm = this.con.prepareStatement("insert into sediste(red, broj, naziv) " +
                             "value (?, ?, ?)");
                     pstm.setInt(1, i);
                     pstm.setInt(2, j);
@@ -460,7 +495,11 @@ public class Options {
 
     }
 
-    private void opcija15() throws InterruptedException, SQLException {
+    public String getUsername() {
+        return username;
+    }
+
+    public void opcija15() throws InterruptedException, SQLException {
         System.out.println("Trenutni korisnik je " + this.username);
         System.out.println("Odjavljivanje...");
         Thread.sleep(200);
@@ -477,11 +516,21 @@ public class Options {
             System.out.println("Pogresna sifra ili korisnik ne postoji");
         }
         else{
-            System.out.println("Uspesno prijavljen novi korisnik: " + rs.getString(2) + " " + rs.getString(3));
-            this.username = rs.getString(1);
+            System.out.println("Uspesno prijavljen novi korisnik: " + rs.getString(1) + " " + rs.getString(2) + " " + rs.getString(3));
+            setUsername(rs.getString(1));
             System.out.println(this.username);
         }
     }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setOpcija(int opcija) {
+        this.opcija = opcija;
+        System.out.println("Trenuta opcija je " + this.opcija);
+    }
+
     private ArrayList<kartaPredstavaOption8> getAllKarte() throws SQLException {
 
         Statement s = this.con.createStatement();
