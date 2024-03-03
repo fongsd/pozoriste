@@ -33,13 +33,7 @@ public class Main {
                 rs.next();
                 String username = rs.getString(1);
                 System.out.println("Uspesno ste ulogovani: "  + username);
-                while (true) {
-
-                    ispisiOpcije();
-                    int opcija = sc.nextInt();
-                    Options res = new Options(opcija, con, username);
-                    Thread.sleep(1000);
-                }
+                optionSelect(sc, con, username);
             }
             catch (SQLException s)
             {
@@ -48,6 +42,15 @@ public class Main {
             }
 
         }catch(Exception e){ System.out.println(e);}
+    }
+    public static void optionSelect(Scanner sc, Connection con, String username) throws SQLException, InterruptedException {
+        while (true) {
+
+            ispisiOpcije();
+            int opcija = sc.nextInt();
+            Options res = new Options(opcija, con, username);
+            Thread.sleep(1000);
+        }
     }
     public static void ispisiOpcije(){
         System.err.println("Unesite broj: ");

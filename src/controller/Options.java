@@ -129,6 +129,16 @@ public class Options {
         ResultSet rs = pstm.executeQuery(); // execute returns true if resultSet is not empty
         return  rs.next() ;
     }
+
+    private boolean isBiletar() throws SQLException {
+        Statement s = this.con.createStatement();
+        ResultSet rs = s.executeQuery("select b.username from biletar b where b.username not in (select m.username from korisnik k join menadzer m on k.username = m.username)");
+        if (!rs.next()) return false;
+        else {
+            System.out.println(rs.getString(1));
+            return true;
+        }
+    }
     private void opcija4() throws SQLException {
         if (isManager()){
             System.out.println("Unesi naziv predstave za promenu");
@@ -350,18 +360,24 @@ public class Options {
         karte.forEach(p -> System.out.println(p.toString()));
     }
 
-    private void opcija9() {
+    private void opcija9() throws SQLException {
+        if (isBiletar()){
+
+        }else{
+            System.out.println("Prijaveljeni korisnik nije biletar");
+        }
     }
 
     private void opcija10() {
     }
+
 
     private void opcija11() throws SQLException {
         if (isManager()) {
             System.out.println("Unos i izmena korisnika: 1 ili 2");
             int opcija = Integer.parseInt(this.sc.nextLine());
             if (opcija == 1) {
-                System.out.println("Unesi novog korisnika: username, password, ime, prezime");
+                System.out.println("Unesi novog korisnika: username, password, ime, prezime, posle svakog unosa sledi enter");
                 PreparedStatement pstm = this.con.prepareStatement(
                         "insert into korisnik value (?, ?, ?, ?);"
                 );
@@ -444,8 +460,27 @@ public class Options {
 
     }
 
-    private void opcija15() {
-
+    private void opcija15() throws InterruptedException, SQLException {
+        System.out.println("Trenutni korisnik je " + this.username);
+        System.out.println("Odjavljivanje...");
+        Thread.sleep(200);
+        System.out.println("Logovanje novog korisnika, unesi username i password");
+        String username = this.sc.nextLine();
+        String password = this.sc.nextLine();
+        System.out.println(username + " " + password);
+        PreparedStatement pstm = this.con.prepareStatement("select * from korisnik where " +
+                "username = ? and lozinka = ?");
+        pstm.setString(1, username);
+        pstm.setString(2, password);
+        ResultSet rs = pstm.executeQuery();
+        if (!rs.next()) {
+            System.out.println("Pogresna sifra ili korisnik ne postoji");
+        }
+        else{
+            System.out.println("Uspesno prijavljen novi korisnik: " + rs.getString(2) + " " + rs.getString(3));
+            this.username = rs.getString(1);
+            System.out.println(this.username);
+        }
     }
     private ArrayList<kartaPredstavaOption8> getAllKarte() throws SQLException {
 
@@ -491,6 +526,9 @@ public class Options {
         public int getPopust() {
             return popust;
         }
+
+
+
 
         @Override
         public String toString() {
