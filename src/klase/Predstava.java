@@ -58,7 +58,6 @@ public class Predstava {
     public void setNaziv(String naziv) {
         this.naziv = naziv;
     }
-
     public void setOpis(String opis) {
         this.opis = opis;
     }
@@ -77,13 +76,15 @@ public class Predstava {
 
     @Override
     public String toString() {
-        return "klase.Predstava{" +
+        return "Predstava{" +
                 "naziv='" + naziv + '\'' +
                 ", reziser='" + reziser + '\'' +
                 ", glumci='" + glumci + '\'' +
                 ", trajanje=" + trajanje +
+                ", tip=" + tip +
                 ", produkcija='" + produkcija + '\'' +
                 ", opis='" + opis + '\'' +
+                ", godina=" + godina +
                 '}';
     }
 }

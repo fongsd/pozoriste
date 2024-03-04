@@ -1,6 +1,8 @@
 package controller;
 
 import klase.*;
+
+import java.sql.Date;
 import java.util.random.*;
 import javax.swing.plaf.nimbus.State;
 import java.sql.*;
@@ -67,7 +69,7 @@ public class Options {
     public void opcija1() {
 //        Scanner sc = new Scanner(System.in);
         System.out.println("Unesi naziv predstave:");
-        String naziv = this.sc.next();
+        String naziv = this.sc.nextLine();
         try {
             PreparedStatement ps = this.con.prepareStatement("select * from predstava where naziv = ?");
             ps.setString(1, naziv);
@@ -92,12 +94,19 @@ public class Options {
     }
     private void opcija2() throws SQLException {
         System.out.println("Unesite parametar pretrage");
-        String parametar = this.sc.nextLine();
+        String parametar = this.sc.nextLine().toLowerCase();
 
         ArrayList<Predstava> svePredstave = getAllPredstave();
-        Comparator<Predstava> comparator = Comparator.comparing(Predstava::getNaziv).reversed(); // sort by names
-        svePredstave.sort(comparator);
-        svePredstave.stream().filter(p -> p.getNaziv().contains(parametar)).forEach( p -> System.out.println(p.getNaziv()));
+        float r = new Random().nextFloat();
+        if (r < 0.5) {
+            Comparator<Predstava> comparator = Comparator.comparing(Predstava::getNaziv).reversed(); // sort by names
+            svePredstave.sort(comparator);
+        }
+        else {
+            Comparator<Predstava> comparator = Comparator.comparing(Predstava::getGodina).reversed(); // sort by names
+            svePredstave.sort(comparator);
+        }
+        svePredstave.stream().map(p ->  p).filter(p -> p.getNaziv().toLowerCase().contains(parametar)).forEach( p -> System.out.println(p.toString()));
 
     }
     private ArrayList<Predstava> getAllPredstave() throws SQLException {
@@ -129,16 +138,15 @@ public class Options {
         if (isManager()) {
             ArrayList<Predstava> predstave = getAllPredstave();
             predstave.forEach(p -> System.out.println(p.toString()));
-            System.out.println("Unesi novu predstavu: naziv*, tip*, reziser, glumci, trajanje, produkcija, godina, opis");
-            PreparedStatement pstm = this.con.prepareStatement("insert into predstava(naziv, tip, reziser, glumci, trajanje, produkcija, godina, opis) value(?, ?, ?, ?, ?, ?, ?, ?)");
+            System.out.println("Unesi novu predstavu: naziv*, tip*, reziser, glumci, trajanje, produkcija, opis");
+            PreparedStatement pstm = this.con.prepareStatement("insert into predstava(naziv, tip, reziser, glumci, trajanje, produkcija, godina, opis) value(?, ?, ?, ?, ?, ?, YEAR(now()), ?)");
             pstm.setString(1, this.sc.nextLine());
             pstm.setString(2, this.sc.nextLine());
             pstm.setString(3, this.sc.nextLine());
             pstm.setString(4, this.sc.nextLine());
             pstm.setString(5, String.valueOf(this.sc.nextLine()));
             pstm.setString(6, this.sc.nextLine());
-            pstm.setString(7, String.valueOf(this.sc.nextLine()));
-            pstm.setString(8, this.sc.nextLine());
+            pstm.setString(7, this.sc.nextLine());
             Boolean inserted = pstm.execute();
             predstave = getAllPredstave();
             predstave.forEach(p -> System.out.println(p.toString()));
@@ -165,12 +173,12 @@ public class Options {
                 "(select m.username from korisnik k join menadzer m " +
                 "on k.username = m.username) " +
                 "and b.username = ?");
-        System.out.println("Postavlja se string za username " + this.username);
+//        System.out.println("Postavlja se string za username " + this.username);
         s.setString(1, this.username);
         ResultSet rs = s.executeQuery();
         if (!rs.next()) return false;
         else {
-            System.out.println(rs.getString(1));
+//            System.out.println(rs.getString(1));
             return true;
         }
     }
@@ -178,11 +186,16 @@ public class Options {
         if (isManager()){
             System.out.println("Unesi naziv predstave za promenu");
             String nazivPredstave = this.sc.nextLine();
-            PreparedStatement pstm = this.con.prepareStatement("update predstava set reziser = ? where naziv = ?");
-            System.out.println("Unesi novog rezisera");
+            PreparedStatement pstm = this.con.prepareStatement("update predstava set reziser = ?, godina = ? , tip = ? where naziv = ?");
+            System.out.println("Unesi novog rezisera, godinu i tip");
             String noviReziser  =this.sc.nextLine();
+            int godina  = Integer.valueOf(this.sc.nextLine());
+            String tip =this.sc.nextLine();
+            System.out.println(noviReziser + " " + godina + " " + tip + " " + nazivPredstave);
             pstm.setString(1, noviReziser);
-            pstm.setString(2, nazivPredstave);
+            pstm.setString(4, nazivPredstave);
+            pstm.setInt(2, godina);
+            pstm.setString(3, tip);
             int alterRows = pstm.executeUpdate();
             System.out.printf("Izmenjeno je redova " + alterRows);
         }else{
@@ -303,8 +316,8 @@ public class Options {
                         " izvodjenje (nazivPredstave, vremePocetka, scenaId, cenaKarte) " +
                         "value (?, addtime(now(), 10000), ?, ?)");
                 pstm.setString(1, nazivPredstave);
-                pstm.setString(3, nazivScene);
-                pstm.setString(4, cenaIzvodjenja);
+                pstm.setString(2, nazivScene);
+                pstm.setString(3, cenaIzvodjenja);
                 if (pstm.execute()){
                     System.out.println("Uspesno uneto izvodjenje");
                 };
@@ -412,21 +425,36 @@ public class Options {
                 System.out.println("ne postoji izvodjenje sa id-ijem " + id);
             }
             else {
+                s = this.con.createStatement();
+                ResultSet getCurrTime = s.executeQuery("select now()");
+                getCurrTime.next();
+                if (checkRs.getDate(3).toString().compareTo(getCurrTime.getDate(1).toString()) < 0){
+                    System.out.println("Predstava je vec pocela");
+                }
 
+                PreparedStatement findScenaName = this.con.prepareStatement("select scenaId from izvodjenje where id = ?");
+                findScenaName.setInt(1, id);
+                ResultSet rsSceneName = findScenaName.executeQuery();
+                rsSceneName.next();
+                String scenaName = rsSceneName.getString(1);
                 PreparedStatement pstm = this.con.prepareStatement
                         ("select s.red, s.broj, s.naziv " +
                                 "from sediste s " +
                                 "where (s.red, s.broj) not in (select k.red, k.broj " +
                                 "from izvodjenje i join karte k on i.id = k.izvodjenje " +
-                                "where i.scenaId = s.naziv " +
-                                "and i.id = ?)");
-                pstm.setInt(1, id);
+                                "where i.scenaId = s.naziv) " +
+                                "and s.naziv = ?");
+                pstm.setString(1, scenaName);
                 System.out.println("Id je " + id);
                 rs = pstm.executeQuery();
                 System.out.println("Slobodna sedista su");
-                while (rs.next()) {
-                    System.out.println("red " + rs.getString(1) + " broj " + rs.getString(2) + " " + rs.getString(3));
+                if (!rs.next()){
+                    System.out.println("Ne postje slobodna sedista");
+                    return;
                 }
+                do  {
+                    System.out.println("red " + rs.getString(1) + " broj " + rs.getString(2) + " " + rs.getString(3));
+                }while (rs.next());
                 System.out.println("unesi red i broj za zeljeno sediste");
                 int red = this.sc.nextInt();
                 int broj = this.sc.nextInt();
@@ -554,11 +582,22 @@ public class Options {
                 pstm.setString(2, password);
                 pstm.setString(3, ime);
                 pstm.setString(4, prezime);
-                if (pstm.execute()) {
+                if (!pstm.execute()) {
                     System.out.println("Unet novi korisnik");
-                    pstm = this.con.prepareStatement("select * from korsnik where username = ?");
+                    if (new Random().nextDouble() < 0.5){
+                        pstm = this.con.prepareStatement("insert into menadzer(username) value(?)");
+                        System.out.println("Unet je kao menadzer");
+                    }
+                    else {
+                        pstm = this.con.prepareStatement("insert into biletar(username) value(?)");
+                        System.out.println("Unet je kao biletar");
+                    }
+                    pstm.setString(1, username);
+                    pstm.execute();
+                    pstm = this.con.prepareStatement("select * from korisnik where username = ?");
                     pstm.setString(1, username);
                     ResultSet rs = pstm.executeQuery();
+                    rs.next();
                     System.out.println(rs.getString(1) + " " + rs.getString(2)
                             + " " + rs.getString(3) + " " + rs.getString(4));
                 }
@@ -671,7 +710,7 @@ public class Options {
         while(rs.next()){
             System.out.println(rs.getString(1) + " " + rs.getString(2));
         }
-        System.out.println("Unesi scenu za brisanje");
+        System.out.println("Unesi naziv scene za brisanje");
         String naziv = this.sc.nextLine();
         PreparedStatement pstm = this.con.prepareStatement("delete from scena where naziv = ? and naziv not in (" +
                 "select i.scenaId from izvodjenje i join karte k " +
@@ -705,7 +744,7 @@ public class Options {
                 "group by i.id " +
                 "having count(*) > 0)");
         pstm.setString(1, naziv);
-        if (pstm.execute()){
+        if (!pstm.execute()){
             System.out.println("Uspesno obrisano");
             s = this.con.createStatement();
             rs = s.executeQuery("select * from predstava");
@@ -726,6 +765,7 @@ public class Options {
         System.out.println("Unesi usera za brisanje");
         String userDelete = this.sc.nextLine();
         if (!userDelete.equals(this.getUsername())) {
+            System.out.println(userDelete);
             PreparedStatement pstm = this.con.prepareStatement("delete from korisnik where username = ?");
             pstm.setString(1, userDelete);
             if (!pstm.execute()){
