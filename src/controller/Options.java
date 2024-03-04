@@ -491,8 +491,128 @@ public class Options {
 
 
 
-    private void opcija14() {
+    private void opcija14() throws SQLException {
+        if (isManager()){
+            izaberiZaBrisanje();
+        }
+    }
+    private void izaberiZaBrisanje() throws SQLException {
+        System.out.println("Izabrati za brisanje:");
+        System.out.println("a) korisnika");
+        System.out.println("b) predstavu");
+        System.out.println("c) scenu");
+        System.out.println("d) izvodjenje");
+        String o = this.sc.nextLine();
+        switch (o){
+            case "a" : izbrisiKorisnika(); break;
+            case "b" : izbrisiPredstavu(); break;
+            case "c" : izbrisiScenu(); break;
+            case "d" : izbrisiIzvodjenje(); break;
+        }
+    }
 
+    private void izbrisiIzvodjenje() throws SQLException {
+        Statement s = this.con.createStatement();
+        ResultSet rs = s.executeQuery("select * from izvodjenje");
+        while(rs.next()){
+            System.out.println(rs.getString(1) + " " + rs.getString(2));
+        }
+        System.out.println("Unesi izvodjenje za brisanje");
+        int idIzvodjenja = this.sc.nextInt();
+        PreparedStatement pstm = this.con.prepareStatement(
+                "delete from izvodjenje where id = ? and id not in " +
+                        "(select k.izvodjenje from karte k)");
+        pstm.setInt(1, idIzvodjenja);
+        if (!pstm.execute()){
+            System.out.println("Uspesno obrisano");
+            s = this.con.createStatement();
+            rs = s.executeQuery("select * from izvodjenje");
+            while(rs.next()){
+                System.out.println(rs.getString(1) + " " + rs.getString(2));
+            }
+        }else {
+            System.out.println("nije uspesno obrisano");
+        }
+    }
+
+    private void izbrisiScenu() throws SQLException {
+        Statement s = this.con.createStatement();
+        ResultSet rs = s.executeQuery("select * from scena");
+        while(rs.next()){
+            System.out.println(rs.getString(1) + " " + rs.getString(2));
+        }
+        System.out.println("Unesi scenu za brisanje");
+        String naziv = this.sc.nextLine();
+        PreparedStatement pstm = this.con.prepareStatement("delete from scena where naziv = ? and naziv not in (" +
+                "select i.scenaId from izvodjenje i join karte k " +
+                "on i.id = k.izvodjenje " +
+                "group by i.id " +
+                "having count(*) > 0)");
+        pstm.setString(1, naziv);
+        if (pstm.execute()){
+            System.out.println("Uspesno obrisano");
+            s = this.con.createStatement();
+            rs = s.executeQuery("select * from scena");
+            while(rs.next()){
+                System.out.println(rs.getString(1) + " " + rs.getString(2));
+            }
+        }else {
+            System.out.println("nije uspesno obrisano");
+        }
+    }
+
+    private void izbrisiPredstavu() throws SQLException {
+        Statement s = this.con.createStatement();
+        ResultSet rs = s.executeQuery("select * from predstava");
+        while(rs.next()){
+            System.out.println(rs.getString(1) + " " + rs.getString(2));
+        }
+        System.out.println("Unesi predstavu za brisanje");
+        String naziv = this.sc.nextLine();
+        PreparedStatement pstm = this.con.prepareStatement("delete from predstava where naziv = ? and naziv not in (" +
+                "select i.nazivPredstave from izvodjenje i join karte k " +
+                "on i.id = k.izvodjenje " +
+                "group by i.id " +
+                "having count(*) > 0)");
+        pstm.setString(1, naziv);
+        if (pstm.execute()){
+            System.out.println("Uspesno obrisano");
+            s = this.con.createStatement();
+            rs = s.executeQuery("select * from predstava");
+            while(rs.next()){
+                System.out.println(rs.getString(1) + " " + rs.getString(2));
+            }
+        }else {
+            System.out.println("nije uspesno obrisano");
+        }
+    }
+
+    private void izbrisiKorisnika() throws SQLException {
+        Statement s = this.con.createStatement();
+        ResultSet rs = s.executeQuery("select * from korisnik");
+        while (rs.next()){
+            System.out.println(rs.getString(1));
+        }
+        System.out.println("Unesi usera za brisanje");
+        String userDelete = this.sc.nextLine();
+        if (!userDelete.equals(this.getUsername())) {
+            PreparedStatement pstm = this.con.prepareStatement("delete from korisnik where username = ?");
+            pstm.setString(1, userDelete);
+            if (!pstm.execute()){
+                System.out.println("uspesno izbrisan korisnik");
+                s = this.con.createStatement();
+                rs = s.executeQuery("select * from korisnik");
+                while (rs.next()){
+                    System.out.println(rs.getString(1));
+                }
+            }
+            else {
+                System.out.println("nije izbrisan korisnik");
+            }
+        }
+        else{
+            System.out.println("Ne mozete obrisati samog sebe");
+        }
     }
 
     public String getUsername() {
