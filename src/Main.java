@@ -53,7 +53,7 @@ public class Main {
             int opcija = sc.nextInt();
             res.setOpcija(opcija);
             res.promenaOpcije();
-            System.out.println("U mainu, username je: " + res.getUsername());
+//            System.out.println("U mainu, username je: " + res.getUsername());
             Thread.sleep(1000);
         }
     }
