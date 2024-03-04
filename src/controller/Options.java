@@ -281,9 +281,8 @@ public class Options {
             System.out.println("Sve scene");
             System.out.println(getAllScena());
             Thread.sleep(500);
-            System.out.println("Unesi naziv predstave, vreme izvodjenja, naziv scene  i cenu izvodjenja za unosenje novog izvodjenja");
+            System.out.println("Unesi naziv predstave, naziv scene  i cenu izvodjenja za unosenje novog izvodjenja");
             String nazivPredstave = this.sc.nextLine();
-            String vremeIzvodjenja = this.sc.nextLine();
             String nazivScene = this.sc.nextLine();
             String cenaIzvodjenja = this.sc.nextLine();
             PreparedStatement pstm = this.con.prepareStatement("select  * from predstava where naziv = ?");
@@ -302,9 +301,8 @@ public class Options {
                 }
                 pstm = this.con.prepareStatement("insert into" +
                         " izvodjenje (nazivPredstave, vremePocetka, scenaId, cenaKarte) " +
-                        "value (?, ? , ?, ?)");
+                        "value (?, addtime(now(), 10000), ?, ?)");
                 pstm.setString(1, nazivPredstave);
-                pstm.setString(2, vremeIzvodjenja);
                 pstm.setString(3, nazivScene);
                 pstm.setString(4, cenaIzvodjenja);
                 if (pstm.execute()){
@@ -397,15 +395,147 @@ public class Options {
 
     private void opcija9() throws SQLException {
         if (isBiletar()){
-            System.out.println("Biletar " + this.username);
+//            System.out.println("Biletar " + this.username);
+            System.out.println("Id svih izvodjenja ");
+            Statement s = this.con.createStatement();
+            ResultSet rs = s.executeQuery("select id from izvodjenje");
+            while (rs.next())
+            {
+                System.out.println(rs.getString(1));
+            }
+            System.out.println("Unesi id izvodjenja ");
+            int id = this.sc.nextInt();
+            PreparedStatement checkStmt = this.con.prepareStatement("select * from izvodjenje where id = ?");
+            checkStmt.setInt(1, id);
+            ResultSet checkRs = checkStmt.executeQuery();
+            if (checkRs.next() == false){
+                System.out.println("ne postoji izvodjenje sa id-ijem " + id);
+            }
+            else {
+
+                PreparedStatement pstm = this.con.prepareStatement
+                        ("select s.red, s.broj, s.naziv " +
+                                "from sediste s " +
+                                "where (s.red, s.broj) not in (select k.red, k.broj " +
+                                "from izvodjenje i join karte k on i.id = k.izvodjenje " +
+                                "where i.scenaId = s.naziv " +
+                                "and i.id = ?)");
+                pstm.setInt(1, id);
+                System.out.println("Id je " + id);
+                rs = pstm.executeQuery();
+                System.out.println("Slobodna sedista su");
+                while (rs.next()) {
+                    System.out.println("red " + rs.getString(1) + " broj " + rs.getString(2) + " " + rs.getString(3));
+                }
+                System.out.println("unesi red i broj za zeljeno sediste");
+                int red = this.sc.nextInt();
+                int broj = this.sc.nextInt();
+                pstm = this.con.prepareStatement("select cenaKarte from izvodjenje where id = ?");
+                pstm.setInt(1, id);
+                rs = pstm.executeQuery();
+                rs.next();
+                double cena = rs.getDouble(1);
+                System.out.println(red + " " + broj + " " + id + " " + cena);
+
+                pstm = this.con.prepareStatement("insert into karte(cena, popust, vremeIzdavanja, izvodjenje, red, broj, biletar) " +
+                        "value (?, 0, now(), ?, ?, ?, ?)");
+                pstm.setDouble(1, cena);
+                pstm.setInt(2, id);
+                pstm.setInt(3, red);
+                pstm.setInt(4, broj);
+                pstm.setString(5, this.getUsername());
+
+                pstm.execute();
+                pstm = this.con.prepareStatement("select * from karte where red = ? and broj = ? and izvodjenje = ?");
+                pstm.setInt(1, red);
+                pstm.setInt(2, broj);
+                pstm.setInt(3, id);
+                rs = pstm.executeQuery();
+                while (rs.next()) {
+                    System.out.println(rs.getString(1) + " " + rs.getString(4));
+                }
+            }
         }else{
             System.out.println("Prijaveljeni korisnik nije biletar " + this.username);
         }
+
     }
 
-    private void opcija10() {
+    private void opcija10() throws SQLException {
+        if (isManager()){
+            System.out.println("Pretraga korisnika po:");
+            System.out.println("a) username");
+            System.out.println("b) imenu i prezimenu");
+            System.out.println("c) nazivu predstave koju je menadžer dodao / za koju je biletar izdao kartu");
+            String opcija = this.sc.nextLine();
+            pretragaKorisnika(opcija);
+        }
+        else {
+            System.out.println("Ulogovani korisnik nije menadzer");
+        }
+    }
+    private void pretragaKorisnika(String opcija) throws SQLException {
+        switch (opcija){
+            case "a" : opcijaA(); break;
+            case "b" : opcijaB(); break;
+            case "c" : opcijaC(); break;
+        }
     }
 
+    private void opcijaA() throws SQLException {
+        System.out.println("Unesi username za pretragu");
+        String username = this.sc.nextLine();
+        PreparedStatement pstm = this.con.prepareStatement("select  ime, prezime, username from korisnik where " +
+                "username = ? ");
+        pstm.setString(1, username);
+        ResultSet rs = pstm.executeQuery();
+        ArrayList<Korisnik> korisniciZaIspis = new ArrayList<>();
+        while (rs.next()){
+           Korisnik k = new Korisnik(rs.getString(1) ,rs.getString(2) , rs.getString(3));
+            korisniciZaIspis.add(k);
+        }
+        ispisiKorisnike(korisniciZaIspis);
+    }
+    private int sortByUsername(Korisnik k1, Korisnik k2){
+        if (k1.getUsername().compareTo(k2.getUsername()) > 0){
+            return 1;
+        }
+        else return -1;
+    }
+    private int sortByImeAndPrezime(Korisnik k1, Korisnik k2){
+        if (k1.getIme().compareTo(k2.getIme()) > 0){
+            return 1;
+        }
+        else if (k1.getIme().compareTo(k2.getIme()) < 0){
+            return -1;
+        }
+        else {
+            if (k1.getPrezime().compareTo(k2.getPrezime()) > 0){
+                return 1;
+            }
+            else return -1;
+        }
+    }
+    private void ispisiKorisnike(ArrayList<Korisnik> korisnici){
+        float r = new Random().nextFloat();
+        if (r < 0.3){
+            korisnici.sort(this::sortByUsername);
+        }
+        else if (r < 0.6){
+            korisnici.sort(this::sortByImeAndPrezime);
+        }
+        else {
+
+        }
+    }
+
+    private void opcijaB() {
+
+    }
+
+    private void opcijaC() {
+
+    }
 
     private void opcija11() throws SQLException {
         if (isManager()) {
