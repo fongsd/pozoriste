@@ -513,14 +513,14 @@ public class Options {
     private void opcijaA() throws SQLException {
         System.out.println("Unesi username za pretragu");
         String username = this.sc.nextLine();
-        PreparedStatement pstm = this.con.prepareStatement("select  ime, prezime, username from korisnik where " +
-                "username = ? ");
+        PreparedStatement pstm = this.con.prepareStatement("select  ime, prezime, username from korisnik" +
+                " where username = ? ");
         pstm.setString(1, username);
         ResultSet rs = pstm.executeQuery();
         ArrayList<Korisnik> korisniciZaIspis = new ArrayList<>();
         while (rs.next()){
            Korisnik k = new Korisnik(rs.getString(1) ,rs.getString(2) , rs.getString(3));
-            korisniciZaIspis.add(k);
+           korisniciZaIspis.add(k);
         }
         ispisiKorisnike(korisniciZaIspis);
     }
@@ -555,10 +555,24 @@ public class Options {
         else {
 
         }
+        korisnici.forEach(p -> System.out.println(p.toString()));
     }
 
-    private void opcijaB() {
-
+    private void opcijaB() throws SQLException {
+        System.out.println("Unesi ime i prezime za pretragu");
+        String ime = this.sc.nextLine();
+        String prezime = this.sc.nextLine();
+        PreparedStatement pstm = this.con.prepareStatement("select  ime, prezime, username from korisnik " +
+                " where ime  = ? and prezime = ? ");
+        pstm.setString(1, ime);
+        pstm.setString(2, prezime);
+        ResultSet rs = pstm.executeQuery();
+        ArrayList<Korisnik> korisniciZaIspis = new ArrayList<>();
+        while (rs.next()){
+            Korisnik k = new Korisnik(rs.getString(1) ,rs.getString(2) , rs.getString(3));
+            korisniciZaIspis.add(k);
+        }
+        ispisiKorisnike(korisniciZaIspis);
     }
 
     private void opcijaC() {
