@@ -11,8 +11,10 @@ public class Predstava {
     String produkcija;
     String opis;
     int godina;
-    public Predstava(String naziv, TipPredstave tip, String reziser, String glumci, int trajanje, String produkcija, int godina, String opis)
+    String menadzer;
+    public Predstava(String naziv, TipPredstave tip, String reziser, String glumci, int trajanje, String produkcija, int godina, String opis, String menadzer)
     {
+        this.menadzer = menadzer;
         this.godina = godina;
         this.naziv = naziv;
         this.tip = tip;
@@ -21,6 +23,10 @@ public class Predstava {
         this.trajanje = trajanje;
         this.produkcija = produkcija;
         this.opis = opis;
+    }
+
+    public String getMenadzer() {
+        return menadzer;
     }
 
     public int getGodina() {
