@@ -29,17 +29,17 @@ public class Main {
             stmt.setString(1, username);
             stmt.setString(2, sifra);
             ResultSet rs = stmt.executeQuery();
+            rs.next();
+            username = rs.getString(1);
+            System.out.println("Uspesno ste ulogovani: "  + username);
             try{
 
-                rs.next();
-                username = rs.getString(1);
-                System.out.println("Uspesno ste ulogovani: "  + username);
                 optionSelect(sc, con, username);
             }
             catch (SQLException s)
             {
                 System.out.println("Desio se error");
-                s.printStackTrace();
+//                s.printStackTrace();
             }
 
         }catch(Exception e){ System.out.println(e);}

@@ -2,11 +2,9 @@ package controller;
 
 import klase.*;
 
-import java.sql.Date;
-import java.util.random.*;
-import javax.swing.plaf.nimbus.State;
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 
 public class Options {
     public int opcija;
@@ -89,7 +87,7 @@ public class Options {
             case "DRAMA" : return TipPredstave.DRAMA;
             case "OPERA" : return TipPredstave.OPERA;
             case "BALET" : return  TipPredstave.BALET;
-            default: return  TipPredstave.BALET;
+            default: return  TipPredstave.NULL;
         }
     }
     private void opcija2() throws SQLException {
@@ -206,9 +204,8 @@ public class Options {
     }
 
     private void opcija5() throws SQLException {
-        System.out.println("Pretrazite izvodjenja predstave na osnovu:");
-        ispisiOpcijePretrage();
         System.out.println("Izaberite opciju pretrage:");
+        ispisiOpcijePretrage();
         String opcija = this.sc.nextLine();
         izvrsiOpciju(opcija);
 
@@ -225,67 +222,173 @@ public class Options {
     }
 
     private void izvrsiOpciju(String opcija) throws SQLException {
+        ArrayList<option5Class> izvodjenjes = new ArrayList<option5Class>();
+
+        PreparedStatement pstm = this.con.prepareStatement("select i.nazivPredstave, tip, vremePocetka, scenaId, cenaKarte, id, count(*)\n, godina, reziser, glumci\n" +
+                "from izvodjenje i join predstava p on i.nazivPredstave = p.naziv\n" +
+                "left join karte k on i.id = k.izvodjenje\n " +
+                "group by nazivPredstave, tip, vremePocetka, scenaId, cenaKarte, id;");
+        ResultSet rs = pstm.executeQuery();
+        while (rs.next()){
+            option5Class o = new option5Class
+                    (rs.getString(1), getTipPredstave(rs.getString(2)),
+                            rs.getDate(3), rs.getString(4), rs.getDouble(5),
+                            rs.getInt(6), rs.getInt(7), rs.getInt(8), rs.getString(9), rs.getString(10));
+
+            izvodjenjes.add(o);
+        }
+
+        double sortProb = new Random().nextDouble();
+        double korak = 1/8;
+        if (sortProb < korak){
+            izvodjenjes.sort(this::sortByNaziv);
+        }
+        else if (sortProb < 2 * korak){
+            izvodjenjes.sort(this::sortByTipPredstave);
+        }
+        else if (sortProb < 3 * korak){
+            izvodjenjes.sort(this::sortByGodina);
+        }
+        else if (sortProb < 4 * korak){
+            izvodjenjes.sort(this::sortByReziser);
+        }
+        else if (sortProb < 5 * korak){
+            izvodjenjes.sort(this::sortByGlumci);
+        }
+        else if (sortProb < 6 * korak){
+            izvodjenjes.sort(this::sortByScena);
+        }
+
         switch (opcija){
-            case "a" : getByNaziv(); break;
-            case "b" : getByTip(); break;
-            case "c" : getByYear(); break;
-            case "d" : getByDirector(); break;
-            case "e" : getByActors(); break;
-            case "f" : getByYearAndDirector(); break;
-            case "g" : getByStartAndEndTime(); break;
-            case "h" : getByScene(); break;
+            case "a" : getByNaziv(izvodjenjes); break;
+            case "b" : getByTip(izvodjenjes); break;
+            case "c" : getByYear(izvodjenjes); break;
+            case "d" : getByDirector(izvodjenjes); break;
+            case "e" : getByActors(izvodjenjes); break;
+            case "f" : getByYearAndDirector(izvodjenjes); break;
+            case "g" : getByStartAndEndTime(izvodjenjes); break;
+            case "h" : getByScene(izvodjenjes); break;
         }
     }
 
-    private void getByYear() {
+    private int sortByGlumci(option5Class k1, option5Class k2) {
+        if (k1.getGlumci().compareTo(k2.getGlumci()) > 0){
+            return 1;
+        }else return -1;
     }
 
-    private void getByDirector() {
+    private int sortByReziser(option5Class k1, option5Class k2) {
+        if (k1.getReziser().compareTo(k2.getReziser()) > 0) return 1;
+        else return -1;
+    }
+
+    private int sortByVreme(option5Class k1, option5Class k2) {
+        if (k1.getVremePocetka().compareTo(k2.getVremePocetka()) > 0)
+            return 1;
+        else return -1;
+    }
+
+    private int sortByNaziv(option5Class k1, option5Class k2) {
+        if (k1.getNazivPredstave().compareTo(k2.getNazivPredstave()) > 0){
+            return 1;
+        }else return -1;
+    }
+    public int sortByTipPredstave(option5Class k1, option5Class k2){
+        if (k1.getTip().compareTo(k2.getTip()) > 0) {
+            return 1;
+        }
+        return -1;
+    }
+    public int sortByGodina(option5Class k1, option5Class k2){
+        if (k1.getGodina() > k2.getGodina())
+            return 1;
+        if (k1.getGodina() < k2.getGodina())
+            return -1;
+        else return 0;
+    }
+    public int sortByScena(option5Class k1, option5Class k2){
+        if (k1.getNazivScene().compareTo(k2.getNazivScene()) > 0){
+            return  1;
+        }
+        return -1;
+    }
+
+
+    public void getByYear(ArrayList<option5Class> izvodjenjes) {
+        System.out.println("Unesi godinu ");
+        int god = this.sc.nextInt();
+        izvodjenjes.stream().filter(p -> p.getGodina() > god).forEach(p -> System.out.println(p.toString()));
+    }
+
+    private void getByDirector(ArrayList<option5Class> izvodjenjes) {
+        System.out.println("Unesi rezisera");
+        String reziser = this.sc.nextLine();
+        izvodjenjes.stream().filter(p -> p.getReziser().equals(reziser)).forEach(p -> System.out.println(p.toString()));
 
     }
 
-    private void getByActors() {
+    private void getByActors(ArrayList<option5Class> izvodjenjes) {
+        System.out.println("Unesi glumca za pretragu");
+        String glumacInput = this.sc.nextLine();
+        for (option5Class izvodjenje : izvodjenjes) {
+            String [] glumci = izvodjenje.getGlumci().split(", ");
+            for (String glumac : glumci){
+                if (glumac.trim().toLowerCase().equals(glumacInput.toLowerCase())){
+                    System.out.println(izvodjenje.toString());
+                    break;
+                }
+            }
+        }
+    }
+
+    private void getByYearAndDirector(ArrayList<option5Class> izvodjenjes) {
+        System.out.println("unesi naziv predstave, rezisera i glumca");
+        String naziv = this.sc.nextLine();
+        String reziser = this.sc.nextLine();
+        String glumacInput = this.sc.nextLine();
+        izvodjenjes.stream().filter(p -> p.getNazivPredstave().toLowerCase().contains(naziv.toLowerCase()))
+                .filter(p -> p.getReziser().toLowerCase().equals(reziser.toLowerCase()));
+        for (option5Class izvodjenje : izvodjenjes) {
+            String [] glumci = izvodjenje.getGlumci().split(", ");
+            for  (String glumac : glumci){
+                if (glumac.trim().toLowerCase().equals(glumacInput.toLowerCase())){
+                    System.out.println(izvodjenje.toString());
+                    break;
+                }
+            }
+        }
 
     }
 
-    private void getByYearAndDirector() {
+    private void getByStartAndEndTime(ArrayList<option5Class> izvodjenjes) {
+        System.out.println("Unesi pocetak i kraj vremena predstave");
+        Date pocetak = new Date(this.sc.nextLine());
+        Date kraj = new Date(this.sc.nextLine());
+        izvodjenjes.stream().filter(p -> p.getVremePocetka().toString().compareTo(pocetak.toString()) > 0).
+                filter(p -> p.getVremePocetka().toString().compareTo(kraj.toString()) < 0).forEach(p -> System.out.println(p.toString()));
+    }
+
+    private void getByScene(ArrayList<option5Class> izvodjenjes) {
+        System.out.println("Unesi naziv scene");
+        String nazivScene = this.sc.nextLine();
+        izvodjenjes.stream().filter(p -> p.getNazivScene().toLowerCase().contains(nazivScene.toLowerCase())).forEach(p -> System.out.println(p.toString()));
+    }
+
+    private void getByTip(ArrayList<option5Class> izvodjenjes) {
+        System.out.println("Unesi tip predstave za pretragu");
+        TipPredstave p = (getTipPredstave(this.sc.nextLine().toUpperCase()));
+        izvodjenjes.stream().filter(x -> x.getTip() == p).forEach(y -> System.out.println( y.toString()));
 
     }
 
-    private void getByStartAndEndTime() {
-
-    }
-
-    private void getByScene() {
-
-    }
-
-    private void getByTip() {
-
-    }
-
-    private ArrayList<Izvodjenje>  getByNaziv() throws SQLException {
-         ArrayList<Izvodjenje> izvodjenjes = new ArrayList<Izvodjenje>();
+    private void  getByNaziv(ArrayList<option5Class> izvodjenjes) throws SQLException {
 
          System.out.println("Unesi naziv predstave");
          String naziv = this.sc.nextLine();
-         PreparedStatement pstm = this.con.prepareStatement("select * from izvodjenje where nazivPredstave = ?");
-         pstm.setString(1, naziv);
-         ResultSet rs = pstm.executeQuery();
-        while (rs.next()){
-            PreparedStatement pstmJoin = this.con.prepareStatement
-                    ("select * " +
-                            "from predstava p join izvodjenje i " +
-                            "on p.naziv = i.nazivPredstave " +
-                            "where p.naziv = ?");
-            pstmJoin.setString(1, naziv);
-             ResultSet rsJoin = pstmJoin.executeQuery();
-             while (rsJoin.next()){
-                 System.out.println(rs.getString(1) + rs.getString(5));
-             }
 
-         }
-         return izvodjenjes;
+        izvodjenjes.stream()
+                .filter(p -> (p.getNazivPredstave().toLowerCase().contains(naziv.toLowerCase())))
+                .forEach(p -> System.out.println(p.toString()));
     }
 
     private void opcija6() throws SQLException, InterruptedException {
@@ -637,8 +740,10 @@ public class Options {
                 try {
                     return sortByTipKorisnika(k1, k2);
                 } catch (SQLException e) {
-                    throw new RuntimeException(e);
+//                    throw new RuntimeException(e);
+                    System.out.println("Greska prlikom sortiranja");
                 }
+                return 0;
             });
         }
         korisnici.forEach(p -> System.out.println(p.toString()));
@@ -987,6 +1092,7 @@ public class Options {
         public int getPopust() {
             return popust;
         }
+
 
 
 
